@@ -1,6 +1,16 @@
 'use strict';
 
-class Cancel {
+//function delay({ ttl, onCancel }) {
+    //return new Promise((resolve, reject) => {
+        //const t = setTimeout(() => resolve(), ttl);
+        //onCancel.then(error => {
+            //clearTimeout(t);
+            //reject(new Error(error));
+        //});
+    //});
+//}
+
+class CancellationContext {
 
     constructor() {
         this.cancellers = new Map();
@@ -24,8 +34,8 @@ class Cancel {
 
     cancellable(fn) {
         let cancel;
-        const whenCancelled = new Promise(r => cancel = r);
-        const context = fn(whenCancelled);
+        const onCancel = new Promise(r => cancel = r);
+        const context = fn({ onCancel });
         this.setContext(context, cancel);
         context.then(() => this.deleteContext(context));
         return context;
@@ -33,4 +43,4 @@ class Cancel {
 
 }
 
-module.exports = { Cancel };
+module.exports = CancellationContext;
