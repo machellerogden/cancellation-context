@@ -1,8 +1,8 @@
 'use strict';
 
 const delay = ms => new Promise(r => setTimeout(() => r(), ms));
-
-const MAX_32_BIT_SIGNED = 2147483647;
+const forever = () => Promise.race([]);
+const tap = fn => v => (fn(), v);
 
 class CancellationError extends Error {
     constructor(...args) {
@@ -29,7 +29,8 @@ class CancellationContext {
     }
 
     cancel(context) {
-        this.cancellers.get(context)();
+        const canceller = this.cancellers.get(context);
+        if (typeof canceller === 'function') canceller();
     }
 
     cancelAll() {
@@ -44,16 +45,16 @@ class CancellationContext {
         this.cancellers.delete(context);
     }
 
-    cancellable(fn, ttl) {
+    cancellable(fn, { ttl } = {}) {
         let cancel;
-        const cancelled = new Promise(resolve => cancel = error => resolve(error || new CancellationError('Cancelled')));
-        const promise = fn({ cancelled }).then(v => (this.deleteContext(context), v));
+        const cancelled = new Promise(resolve => cancel = error => resolve(error || new CancellationError('Cancelled')))
+        const promise = fn(cancelled).then(tap(() => this.deleteContext(context)));
         const context = ttl
             ? Promise.race([
                 promise,
                 delay(ttl)
                     .then(() => cancel(new TimeoutError('Expired', `${ttl}ms TTL surpassed.`)))
-                    .then(() => delay(MAX_32_BIT_SIGNED))
+                    .then(forever)
             ])
             : promise;
         this.setContext(context, cancel);

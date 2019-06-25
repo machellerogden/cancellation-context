@@ -17,11 +17,11 @@ function sleep(ms, cancelled) {
     const c = new CancellationContext();
 
     try {
-        const context = c.cancellable(({ cancelled }) => sleep(1500, cancelled));
-        setTimeout(() => c.cancel(context), 1000);
+        const context = c.cancellable(cancelled => sleep(1500, cancelled));
+        setTimeout(() => c.cancel(context), 1000); // try increasing to 2000
+        console.log('Success!', await context);
     } catch (e) {
         console.error('Boom!', e);
     }
-
 
 })();

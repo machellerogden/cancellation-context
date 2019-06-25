@@ -22,9 +22,9 @@ function sleep(ms, cancelled) {
     async function* loop() {
         while (true) {
             const promises = [
-                c.cancellable(({ cancelled }) => sleep(500, cancelled)),
-                c.cancellable(({ cancelled }) => sleep(1000, cancelled)),
-                c.cancellable(({ cancelled }) => sleep(1500, cancelled))
+                c.cancellable(cancelled => sleep(500, cancelled)),
+                c.cancellable(cancelled => sleep(1000, cancelled)), // { ttl: 900 }), // try adding a ttl
+                c.cancellable(cancelled => sleep(1500, cancelled))
             ];
             yield await Promise.all(promises);
         }
