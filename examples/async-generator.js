@@ -37,7 +37,9 @@ function sleep(ms, cancelled) {
             console.log(result);
         }
     } catch (e) {
+        c.cancelAll();
         console.error('Boom!', e);
+        process.exit(1);
     }
 
 })();
