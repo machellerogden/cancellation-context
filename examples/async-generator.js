@@ -1,9 +1,6 @@
-# cancellation-context
+'use strict';
 
-## Non-Trival Example
-
-```
-const CancellationContext = require('cancellation-context');
+const CancellationContext = require('..');
 
 function sleep(ms, cancelled) {
     return new Promise((resolve, reject) => {
@@ -44,4 +41,3 @@ function sleep(ms, cancelled) {
     }
 
 })();
-```

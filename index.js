@@ -1,14 +1,24 @@
 'use strict';
 
-//function delay({ ttl, onCancel }) {
-    //return new Promise((resolve, reject) => {
-        //const t = setTimeout(() => resolve(), ttl);
-        //onCancel.then(error => {
-            //clearTimeout(t);
-            //reject(new Error(error));
-        //});
-    //});
-//}
+const sleep = ms => new Promise(r => setTimeout(() => r(), ms));
+
+class CancellationError extends Error {
+    constructor(...args) {
+        super(...args);
+        Error.captureStackTrace(this, CancellationError);
+        this.name = 'CancellationError';
+        this.code = 'CANCELLED';
+    }
+}
+
+class TimeoutError extends Error {
+    constructor(...args) {
+        super(...args);
+        Error.captureStackTrace(this, TimeoutError);
+        this.name = 'TimeoutError';
+        this.code = 'EXPIRED';
+    }
+}
 
 class CancellationContext {
 
@@ -32,12 +42,12 @@ class CancellationContext {
         this.cancellers.delete(context);
     }
 
-    cancellable(fn) {
+    cancellable(fn, ttl) {
         let cancel;
-        const onCancel = new Promise(r => cancel = r);
-        const context = fn({ onCancel });
+        const cancelled = new Promise(resolve => cancel = error => resolve(error || new CancellationError('Cancelled')));
+        const context = fn({ cancelled }).then(v => (this.deleteContext(context), v));
+        if (ttl) sleep(ttl).then(() => cancel(new TimeoutError('Expired', `${ttl}ms TTL surpassed.`)));
         this.setContext(context, cancel);
-        context.then(() => this.deleteContext(context));
         return context;
     }
 
