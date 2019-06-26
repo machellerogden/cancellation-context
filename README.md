@@ -104,7 +104,6 @@ const context = require('cancellation-context')();
     } catch (e) {
         context.cancelAll();
         console.error('Boom!', e);
-        process.exit(1);
     }
 
 })();
