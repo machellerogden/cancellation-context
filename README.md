@@ -1,28 +1,44 @@
 # cancellation-context
 
-## Simple Example
+> Promise-cancellation made easy. Cancel one or more promises in a given context.
+
+# Install
+
+`npm i cancellation-context`
+
+# Usage
+
+Create a new context by calling the exported factory function.
+
+```js
+const CancellationContext = require('cancellation-context');
+const context = CancellationContext();
+```
+
+The returned context has the following methods.
+
+## Methods
+
+### `.cancellable(fn)`
+
+### `.persishable(fn, ttl)`
+
+### `.cancel(promise)`
+
+### `.cancelAll()`
+
+## Examples
+
+### Simple Cancellation
 
 ```
-const CancellationContext = require('cancellation-context');
-
-function sleep(ms, cancelled) {
-    return new Promise((resolve, reject) => {
-        const t = setTimeout(() => resolve('success'), ms);
-        cancelled.then(error => {
-            clearTimeout(t);
-            reject(error);
-        });
-    });
-}
+const context = require('cancellation-context')();
 
 (async () => {
 
-    const c = new CancellationContext();
-
     try {
-        const context = c.cancellable(cancelled => sleep(1500, cancelled));
-        setTimeout(() => c.cancel(context), 1000); // try increasing to 2000
-        console.log('Success!', await context);
+        const ttl = 1000; // try increasing to 10000
+        console.log(await context.perishable(cancelled => context.delay(1500, cancelled).then(() => 'success'), ttl));
     } catch (e) {
         console.error('Boom!', e);
     }
@@ -30,47 +46,32 @@ function sleep(ms, cancelled) {
 })();
 ```
 
-## Non-Trival Example
+### Async Iterables
 
 ```
-const CancellationContext = require('cancellation-context');
-
-function sleep(ms, cancelled) {
-    return new Promise((resolve, reject) => {
-        const t = setTimeout(() => {
-            console.log('done');
-            resolve('success');
-        }, ms);
-        cancelled.then(error => {
-            clearTimeout(t);
-            reject(error);
-        });
-    });
-}
+const context = require('cancellation-context')();
 
 (async () => {
-
-    const c = new CancellationContext();
 
     async function* loop() {
         while (true) {
             const promises = [
-                c.cancellable(cancelled => sleep(500, cancelled)),
-                c.cancellable(cancelled => sleep(1000, cancelled)), // { ttl: 900 }), // try adding a ttl
-                c.cancellable(cancelled => sleep(1500, cancelled))
+                context.cancellable(cancelled => context.delay(500, cancelled).then(() => (console.log('done'),'success'))),
+                context.cancellable(cancelled => context.delay(1000, cancelled).then(() => (console.log('done'),'success'))),
+                context.cancellable(cancelled => context.delay(1500, cancelled).then(() => (console.log('done'),'success')))
             ];
             yield await Promise.all(promises);
         }
     }
 
-    setTimeout(() => c.cancelAll(), 4000);
+    setTimeout(() => context.cancelAll(), 4000);
 
     try {
         for await (const result of loop()) {
             console.log(result);
         }
     } catch (e) {
-        c.cancelAll();
+        context.cancelAll();
         console.error('Boom!', e);
         process.exit(1);
     }

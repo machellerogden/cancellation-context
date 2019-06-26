@@ -1,6 +1,6 @@
 'use strict';
 
-const CancellationContext = require('..');
+const context = require('..')();
 
 function sleep(ms, cancelled) {
     return new Promise((resolve, reject) => {
@@ -14,12 +14,10 @@ function sleep(ms, cancelled) {
 
 (async () => {
 
-    const c = new CancellationContext();
-
     try {
-        const context = c.cancellable(cancelled => sleep(1500, cancelled));
-        const handle = setTimeout(() => c.cancel(context), 1000); // try increasing to 2000
-        console.log('Success!', await context);
+        const promise = context.cancellable(cancelled => sleep(1500, cancelled));
+        const handle = setTimeout(() => context.cancel(promise), 1000); // try increasing to 2000
+        console.log('Success!', await promise);
         clearTimeout(handle);
     } catch (e) {
         console.error('Boom!', e);

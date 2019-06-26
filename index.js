@@ -1,8 +1,5 @@
 'use strict';
 
-const tap = fn => v => (fn(), v);
-const tapReject = fn => e => (fn(), Promise.reject(e));
-
 class CancellationError extends Error {
     constructor(...args) {
         super(...args);
@@ -27,8 +24,8 @@ class CancellationContext {
         this.cancellers = new Map();
     }
 
-    cancel(context) {
-        const canceller = this.cancellers.get(context);
+    cancel(promise) {
+        const canceller = this.cancellers.get(promise);
         if (typeof canceller === 'function') canceller();
     }
 
@@ -36,12 +33,12 @@ class CancellationContext {
         this.cancellers.forEach(c => c());
     }
 
-    setContext(context, cancel) {
-        this.cancellers.set(context, cancel);
+    setContext(promise, cancel) {
+        this.cancellers.set(promise, cancel);
     }
 
-    deleteContext(context) {
-        this.cancellers.delete(context);
+    deleteContext(promise) {
+        this.cancellers.delete(promise);
     }
 
     createToken() {
@@ -50,16 +47,16 @@ class CancellationContext {
         return [ cancel, cancelled ];
     }
 
-    after(context, fn) {
-        context.then(tap(fn)).catch(tap(fn));
+    after(promise, fn) {
+        promise.then(fn).catch(fn);
     }
 
     cancellable(fn) {
         const [ cancel, cancelled ] = this.createToken();
-        const context = fn(cancelled);
-        this.setContext(context, cancel);
-        this.after(context, () => this.deleteContext(context));
-        return context;
+        const promise = fn(cancelled);
+        this.setContext(promise, cancel);
+        this.after(promise, () => this.deleteContext(promise));
+        return promise;
     }
 
     delay(ms, cancelled) {
@@ -73,12 +70,16 @@ class CancellationContext {
     }
 
     perishable(fn, ttl) {
-        const context = this.cancellable(fn);
-        const handle = setTimeout(() => this.cancel(context), ttl);
-        this.after(context, () => clearTimeout(handle));
-        return context;
+        const promise = this.cancellable(fn);
+        const handle = setTimeout(() => this.cancel(promise), ttl);
+        this.after(promise, () => clearTimeout(handle));
+        return promise;
     }
 
 }
 
-module.exports = CancellationContext;
+function CancellationContextFactory(...args) {
+    return new CancellationContext(...args);
+}
+
+module.exports = CancellationContextFactory;
