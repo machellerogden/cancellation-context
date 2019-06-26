@@ -27,7 +27,7 @@ The returned context has the following methods.
 
 ### `.cancelAll()`
 
-## Examples
+# Examples
 
 ### Simple Cancellation
 
