@@ -1,7 +1,5 @@
 'use strict';
 
-const delay = ms => new Promise(r => setTimeout(() => r(), ms));
-const forever = () => Promise.race([]);
 const tap = fn => v => (fn(), v);
 const tapReject = fn => e => (fn(), Promise.reject(e));
 
