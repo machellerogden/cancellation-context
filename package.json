@@ -1,6 +1,6 @@
 {
   "name": "cancellation-context",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Promise-cancellation made easy. Cancel one or more promises in a given context.",
   "main": "index.js",
   "scripts": {
@@ -17,11 +17,11 @@
   },
   "license": "MIT",
   "keywords": [
-      "promise",
-      "promises",
-      "async",
-      "cancel",
-      "cancellation"
+    "promise",
+    "promises",
+    "async",
+    "cancel",
+    "cancellation"
   ],
   "dependencies": {},
   "devDependencies": {
