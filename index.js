@@ -75,8 +75,8 @@ class CancellationContext {
     perishable(fn, ttl) {
         let handle;
         const context = this.cancellable(fn)
-            .then(tap(() => clearTimeout(handle)))
-            .catch(tapReject(() => clearTimeout(handle)));
+            //.then(tap(() => clearTimeout(handle)))
+            //.catch(tapReject(() => clearTimeout(handle)));
         handle = setTimeout(() => this.cancel(context), ttl);
         return context;
     }
