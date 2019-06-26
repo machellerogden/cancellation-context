@@ -50,13 +50,15 @@ class CancellationContext {
         return [ cancel, cancelled ];
     }
 
+    after(context, fn) {
+        context.then(tap(fn)).catch(tap(fn));
+    }
+
     cancellable(fn) {
         const [ cancel, cancelled ] = this.createToken();
-        const promise = fn(cancelled);
-        const context = promise
-            .then(tap(() => this.deleteContext(context)))
-            .catch(tapReject(() => this.deleteContext(context)));
+        const context = fn(cancelled);
         this.setContext(context, cancel);
+        this.after(context, () => this.deleteContext(context));
         return context;
     }
 
@@ -73,8 +75,7 @@ class CancellationContext {
     perishable(fn, ttl) {
         const context = this.cancellable(fn);
         const handle = setTimeout(() => this.cancel(context), ttl);
-        context.then(tap(() => clearTimeout(handle)))
-               .catch(tap(() => clearTimeout(handle)));
+        this.after(context, () => clearTimeout(handle));
         return context;
     }
 

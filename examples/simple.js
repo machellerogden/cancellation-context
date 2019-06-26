@@ -18,7 +18,7 @@ function sleep(ms, cancelled) {
 
     try {
         const context = c.cancellable(cancelled => sleep(1500, cancelled));
-        const handle = setTimeout(() => c.cancel(context), 10000); // try increasing to 2000
+        const handle = setTimeout(() => c.cancel(context), 1000); // try increasing to 2000
         console.log('Success!', await context);
         clearTimeout(handle);
     } catch (e) {
