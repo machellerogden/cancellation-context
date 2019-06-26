@@ -52,35 +52,33 @@ class CancellationContext {
         return [ cancel, cancelled ];
     }
 
-    timeout(ttl) {
-        let succeed;
-        let fail;
-        const handle = setTimeout(() => fail(), ttl);
-        const delay = new Promise((resolve, reject) => {
-            fail = () => reject(new TimeoutError('Expired', `${ttl}ms TTL surpassed.`));
-            succeed = resolve;
-        }).finally(() => clearTimeout(handle));
-        return [ delay, succeed, fail ];
+    cancellable(fn) {
+        const [ cancel, cancelled ] = this.createToken();
+        const promise = fn(cancelled);
+        const context = promise
+            .then(tap(() => this.deleteContext(context)))
+            .catch(tapReject(() => this.deleteContext(context)));
+        this.setContext(context, cancel);
+        return context;
     }
 
-    cancellable(fn, { ttl } = {}) {
-        const [ cancel, cancelled ] = this.createToken();
-        let context;
-        const promise = fn(cancelled).then(tap(() => this.deleteContext(context)));
-        if (ttl) {
-            const [ delay, clear ] = this.timeout(ttl);
-            context = Promise.race([
-                promise,
-                delay
-            ]).then(tap(() => clear()))
-              .catch(tapReject(() => clear()));
-            this.setContext(context, cancel);
-            return context;
-        } else {
-            context = promise;
-            this.setContext(context, cancel);
-            return context;
-        }
+    delay(ms, cancelled) {
+        return new Promise((resolve, reject) => {
+            const handle = setTimeout(() => resolve(), ms);
+            cancelled.then(error => {
+                clearTimeout(handle);
+                reject(error);
+            });
+        });
+    }
+
+    perishable(fn, ttl) {
+        let handle;
+        const context = this.cancellable(fn)
+            .then(tap(() => clearTimeout(handle)))
+            .catch(tapReject(() => clearTimeout(handle)));
+        handle = setTimeout(() => this.cancel(context), ttl);
+        return context;
     }
 
 }

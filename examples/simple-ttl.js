@@ -6,6 +6,7 @@ function sleep(ms, cancelled) {
     return new Promise((resolve, reject) => {
         const t = setTimeout(() => resolve('success'), ms);
         cancelled.then(error => {
+            console.log('here');
             clearTimeout(t);
             reject(error);
         });
@@ -17,8 +18,8 @@ function sleep(ms, cancelled) {
     const c = new CancellationContext();
 
     try {
-        const ttl = 1000; // try increasing to 2000
-        console.log(await c.cancellable(cancelled => sleep(10000, cancelled), { ttl }));
+        const ttl = 100000; // try increasing to 2000
+        console.log(await c.perishable(cancelled => c.delay(100, cancelled).then(() => 'success'), ttl));
     } catch (e) {
         console.error('Boom!', e);
     }
