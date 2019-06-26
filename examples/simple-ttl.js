@@ -18,8 +18,8 @@ function sleep(ms, cancelled) {
     const c = new CancellationContext();
 
     try {
-        const ttl = 100000; // try increasing to 2000
-        console.log(await c.perishable(cancelled => c.delay(100, cancelled).then(() => 'success'), ttl));
+        const ttl = 1000; // try increasing to 2000
+        console.log(await c.perishable(cancelled => c.delay(1500, cancelled).then(() => 'success'), ttl));
     } catch (e) {
         console.error('Boom!', e);
     }
