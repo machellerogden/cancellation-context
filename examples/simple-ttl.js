@@ -2,17 +2,6 @@
 
 const CancellationContext = require('..');
 
-function sleep(ms, cancelled) {
-    return new Promise((resolve, reject) => {
-        const t = setTimeout(() => resolve('success'), ms);
-        cancelled.then(error => {
-            console.log('here');
-            clearTimeout(t);
-            reject(error);
-        });
-    });
-}
-
 (async () => {
 
     const c = new CancellationContext();
