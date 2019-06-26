@@ -59,14 +59,16 @@ class CancellationContext {
         return promise;
     }
 
-    delay(ms, cancelled) {
-        return new Promise((resolve, reject) => {
-            const handle = setTimeout(() => resolve(), ms);
-            cancelled.then(error => {
-                clearTimeout(handle);
-                reject(error);
+    delay(ms) {
+        return function (cancelled) {
+            return new Promise((resolve, reject) => {
+                const handle = setTimeout(() => resolve(), ms);
+                cancelled.then(error => {
+                    clearTimeout(handle);
+                    reject(error);
+                });
             });
-        });
+        }
     }
 
     perishable(fn, ttl) {

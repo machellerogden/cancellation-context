@@ -7,9 +7,9 @@ const context = require('..')();
     async function* loop() {
         while (true) {
             const promises = [
-                context.cancellable(cancelled => context.delay(500, cancelled).then(() => (console.log('done'),'success'))),
-                context.cancellable(cancelled => context.delay(1000, cancelled).then(() => (console.log('done'),'success'))),
-                context.cancellable(cancelled => context.delay(1500, cancelled).then(() => (console.log('done'),'success')))
+                context.cancellable(context.delay(500)).then(() => (console.log('done'),'success')),
+                context.cancellable(context.delay(1000)).then(() => (console.log('done'),'success')),
+                context.cancellable(context.delay(1500)).then(() => (console.log('done'),'success'))
             ];
             yield await Promise.all(promises);
         }
