@@ -1,20 +1,22 @@
 'use strict';
 
 class CancellationError extends Error {
-    constructor(...args) {
-        super(...args);
+    constructor(message, cause, ...args) {
+        super(message, cause, ...args);
         Error.captureStackTrace(this, CancellationError);
         this.name = 'CancellationError';
         this.code = 'CANCELLED';
+        if (cause) this.cause = cause;
     }
 }
 
 class TimeoutError extends Error {
-    constructor(...args) {
-        super(...args);
+    constructor(message, cause, ...args) {
+        super(message, cause, ...args);
         Error.captureStackTrace(this, TimeoutError);
         this.name = 'TimeoutError';
         this.code = 'EXPIRED';
+        if (cause) this.cause = cause;
     }
 }
 
@@ -24,9 +26,9 @@ class CancellationContext {
         this.cancellers = new Map();
     }
 
-    cancel(promise) {
+    cancel(promise, error) {
         const canceller = this.cancellers.get(promise);
-        if (typeof canceller === 'function') canceller();
+        if (typeof canceller === 'function') canceller(error);
     }
 
     cancelAll() {
@@ -73,7 +75,7 @@ class CancellationContext {
 
     perishable(fn, ttl) {
         const promise = this.cancellable(fn);
-        const handle = setTimeout(() => this.cancel(promise), ttl);
+        const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', `${ttl}ms TTL surpassed`)), ttl);
         this.after(promise, () => clearTimeout(handle));
         return promise;
     }
