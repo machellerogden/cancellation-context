@@ -76,7 +76,7 @@ class CancellationContext {
         const context = this.cancellable(fn);
         const handle = setTimeout(() => this.cancel(context), ttl);
         context.then(tap(() => clearTimeout(handle)))
-               .catch(tapReject(() => clearTimeout(handle)));
+               .catch(tap(() => clearTimeout(handle)));
         return context;
     }
 
