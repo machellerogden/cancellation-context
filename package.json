@@ -1,6 +1,6 @@
 {
   "name": "cancellation-context",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "cancel 1 or more promises in a given context",
   "main": "index.js",
   "scripts": {
