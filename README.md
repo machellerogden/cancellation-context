@@ -27,7 +27,43 @@ The returned context has the following methods.
 
 ### `.cancelAll()`
 
+### `.timeout(ms)`
+
 ### `.delay(ms)`
+
+
+## Authoring Cancellable Functions
+
+Promises are eager by design and don't naturally lend themselve to cancellation. As such, arbitrary promises are not cancellable and the onus is the author to write cancellable promise implementations. No library, including this one, will be able to solve for that unless there are some fundamental changes to the JavaScript spec. That said, this library attemps to make it as easy as possible to author cancellable promises by support the idea of a cancellable-promise factory.
+
+The recommended pattern is as follows:
+
+```
+const MyCancellableFactory = (<< args >>) => onCancel => new Promise(<< implementation >>);
+```
+
+For example...
+
+```
+const CancellationContext = require('cancellation-context');
+const context = CancellationContext();
+
+const MyCancellableFactory = msg => onCancel => new Promise((resolve, reject) => {
+    const t = setTimeout(() => resolve(msg), 1000);
+    onCancel(reason => {
+        clearTimeout(t);
+        resolve(reason);
+    });
+});
+
+(async () => {
+    const myCancellable = context.cancellable(MyCancellableFactory('success!'));
+    setTimeout(() => myCancellable.cancel('cancelled!'), 500);
+    console.log(await myCancellable); // => 'cancelled!'
+})();
+```
+
+In this way, you can maintain composability while still receiving the `onCancel` hook.
 
 # Examples
 
@@ -53,20 +89,20 @@ const context = require('cancellation-context')();
 ```js
 const context = require('cancellation-context')();
 
-function sleep(ms, cancelled) {
+const sleep = ms => onCancel => {
     return new Promise((resolve, reject) => {
         const t = setTimeout(() => resolve('success'), ms);
-        cancelled.then(error => {
+        onCancel(error => {
             clearTimeout(t);
             reject(error);
         });
     });
-}
+};
 
 (async () => {
 
     try {
-        const promise = context.cancellable(cancelled => sleep(1500, cancelled));
+        const promise = context.cancellable(sleep(1500));
         const handle = setTimeout(() => context.cancel(promise), 1000); // try increasing to 10000
         console.log('Success!', await promise);
         clearTimeout(handle);

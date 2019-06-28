@@ -1,5 +1,7 @@
 'use strict';
 
+const ExpirationMessage = ms => `${ms}ms TTL surpassed`;
+
 class CancellationError extends Error {
     constructor(message, cause, ...args) {
         super(message, cause, ...args);
@@ -26,13 +28,13 @@ class CancellationContext {
         this.cancellers = new Map();
     }
 
-    cancel(promise, error) {
+    cancel(promise, reason) {
         const canceller = this.cancellers.get(promise);
-        if (typeof canceller === 'function') canceller(error);
+        if (typeof canceller === 'function') canceller(reason);
     }
 
-    cancelAll(error) {
-        this.cancellers.forEach(c => c(error));
+    cancelAll(reason) {
+        this.cancellers.forEach(c => c(reason));
     }
 
     setContext(promise, cancel) {
@@ -45,8 +47,9 @@ class CancellationContext {
 
     createToken() {
         let cancel;
-        const cancelled = new Promise(resolve => cancel = error => resolve(error || new CancellationError('Cancelled')));
-        return [ cancel, cancelled ];
+        const cancelled = new Promise(resolve => cancel = reason => resolve(reason || new CancellationError('Cancelled')));
+        const onCancel = fn => cancelled.then(fn);
+        return [ cancel, onCancel ];
     }
 
     after(promise, fn) {
@@ -54,28 +57,41 @@ class CancellationContext {
     }
 
     cancellable(fn) {
-        const [ cancel, cancelled ] = this.createToken();
-        const promise = fn(cancelled);
+        const [ cancel, onCancel ] = this.createToken();
+        const promise = fn(onCancel);
+        promise.cancel = reason => this.cancel(promise, reason);
         this.setContext(promise, cancel);
         this.after(promise, () => this.deleteContext(promise));
         return promise;
     }
 
     delay(ms) {
-        return function (cancelled) {
+        return onCancel => {
             return new Promise((resolve, reject) => {
                 const handle = setTimeout(() => resolve(), ms);
-                cancelled.then(error => {
+                onCancel(reason => {
                     clearTimeout(handle);
-                    reject(error);
+                    resolve(reason || ExpirationMessage(ms));
                 });
             });
-        }
+        };
     }
 
-    perishable(fn, ttl) {
+    timeout(ms) {
+        return onCancel => {
+            return new Promise((resolve, reject) => {
+                const handle = setTimeout(() => resolve(), ms);
+                onCancel(reason => {
+                    clearTimeout(handle);
+                    reject(reason || new TimeoutError('Expired', ExpirationMessage(ms)));
+                });
+            });
+        };
+    }
+
+    perishable(fn, ms) {
         const promise = this.cancellable(fn);
-        const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', `${ttl}ms TTL surpassed`)), ttl);
+        const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', ExpirationMessage(ms))), ms);
         this.after(promise, () => clearTimeout(handle));
         return promise;
     }

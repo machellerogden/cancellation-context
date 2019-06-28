@@ -2,20 +2,20 @@
 
 const context = require('..')();
 
-function sleep(ms, cancelled) {
+const sleep = ms => onCancel => {
     return new Promise((resolve, reject) => {
         const t = setTimeout(() => resolve('success'), ms);
-        cancelled.then(error => {
+        onCancel(error => {
             clearTimeout(t);
             reject(error);
         });
     });
-}
+};
 
 (async () => {
 
     try {
-        const promise = context.cancellable(cancelled => sleep(1500, cancelled));
+        const promise = context.cancellable(sleep(1500));
         const handle = setTimeout(() => context.cancel(promise), 1000); // try increasing to 10000
         console.log('Success!', await promise);
         clearTimeout(handle);
