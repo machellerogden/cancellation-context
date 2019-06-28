@@ -45,7 +45,7 @@ class CancellationContext {
         this.cancellers.delete(promise);
     }
 
-    createToken() {
+    createHooks() {
         let cancel;
         const cancelled = new Promise(resolve => cancel = reason => resolve(reason || new CancellationError('Cancelled')));
         const onCancel = fn => cancelled.then(fn);
@@ -56,15 +56,34 @@ class CancellationContext {
         promise.then(fn).catch(fn);
     }
 
-    cancellable(fn) {
-        const [ cancel, onCancel ] = this.createToken();
-        const promise = fn(onCancel);
+    Cancellable(fn) {
+        const [ cancel, onCancel ] = this.createHooks();
+        const promise = Promise.resolve(fn(onCancel));
         promise.cancel = reason => this.cancel(promise, reason);
         this.setContext(promise, cancel);
         this.after(promise, () => this.deleteContext(promise));
         return promise;
     }
 
+    Perishable(fn, ms) {
+        const promise = this.Cancellable(fn);
+        const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', ExpirationMessage(ms))), ms);
+        this.after(promise, () => clearTimeout(handle));
+        return promise;
+    }
+
+    /**
+     * A cancellable delay implementation which resolves after given number of milliseconds.
+     *
+     * @function delay
+     * @param {number} ms Number of milliseconds to wait
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableDelay = context.Cancellable(context.delay(1500));
+     * setTimeout(() => cancellableDelay.cancel(), 1000);
+     * await cancellableDelay;
+     */
     delay(ms) {
         return onCancel => {
             return new Promise((resolve, reject) => {
@@ -77,6 +96,18 @@ class CancellationContext {
         };
     }
 
+    /**
+     * A cancellable timeout implementation which resolves after given number of milliseconds.
+     *
+     * @function timeout
+     * @param {number} ms Number of milliseconds to wait
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableTimeout = context.Cancellable(context.delay(1500));
+     * setTimeout(() => cancellableTimeout.cancel(), 1000);
+     * await cancellableTimeout;
+     */
     timeout(ms) {
         return onCancel => {
             return new Promise((resolve, reject) => {
@@ -89,11 +120,68 @@ class CancellationContext {
         };
     }
 
-    perishable(fn, ms) {
-        const promise = this.cancellable(fn);
-        const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', ExpirationMessage(ms))), ms);
-        this.after(promise, () => clearTimeout(handle));
-        return promise;
+    /**
+     * A Cancellable factory which resolves after given number of milliseconds.
+     *
+     * @function CancellableDelay
+     * @param {number} ms Number of milliseconds to wait
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableDelay = context.CancellableDelay(1500));
+     * setTimeout(() => cancellableDelay.cancel(), 1000);
+     * await cancellableDelay;
+     */
+    CancellableDelay(ms) {
+        return this.Cancellable(this.delay(ms));
+    }
+
+    /**
+     * A Cancellable factory which rejects after given number of milliseconds.
+     *
+     * @function CancellableTimeout
+     * @param {number} ms Number of milliseconds to wait
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableTimeout = context.CancellableTimeout(1500));
+     * setTimeout(() => cancellableTimeout.cancel(), 1000);
+     * await cancellableTimeout;
+     */
+    CancellableTimeout(ms) {
+        return this.Cancellable(this.timeout(ms));
+    }
+
+    /**
+     * A Perishable factory which rejects after given number of milliseconds.
+     *
+     * @function PerishableTimeout
+     * @param {number} ms Number of milliseconds to wait
+     * @param {number} ttl Number of milliseconds until cancelled
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableTimeout = context.PerishableTimeout(1500, 1000);
+     * await cancellableTimeout;
+     */
+    PerishableTimeout(ms, ttl) {
+        return this.Perishable(this.timeout(ms), ttl);
+    }
+
+    /**
+     * A Perishable factory which resolves after given number of milliseconds.
+     *
+     * @function PerishableDelay
+     * @param {number} ms Number of milliseconds to wait
+     * @param {number} ttl Number of milliseconds until cancelled
+     * @returns {function} Returns function which accepts `onCancel` hook.
+     * @example
+     *
+     * const cancellableDelay = context.PerishableDelay(1500, 1000);
+     * await cancellableDelay;
+     */
+    PerishableDelay(ms, ttl) {
+        return this.Perishable(this.delay(ms), ttl);
     }
 
 }

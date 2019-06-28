@@ -6,7 +6,7 @@ const context = require('..')();
 
     try {
         const ttl = 1000; // try increasing to 10000
-        console.log(await context.perishable(context.timeout(1500), ttl).then(() => 'success'));
+        console.log(await context.PerishableTimeout(1500, ttl).then(() => 'success'));
     } catch (e) {
         console.error('Boom!', e);
     }

@@ -17,19 +17,31 @@ const context = CancellationContext();
 
 The returned context has the following methods.
 
-## Methods
+## Core Methods
 
-### `.cancellable(fn)`
+### `.Cancellable(fn)`
 
-### `.persishable(fn, ttl)`
+### `.Perishable(fn, ttl)`
 
 ### `.cancel(promise)`
 
 ### `.cancelAll()`
 
-### `.timeout(ms)`
+## Convenience Methods
+
+In addition to the core functionality above, a few functions are exposed for convenience to make working with timeouts less cumbersome.
 
 ### `.delay(ms)`
+
+### `.timeout(ms)`
+
+### `.CancellableDelay(ms)`
+
+### `.CancellableTimeout(ms)`
+
+### `.PerishableDelay(ms, ttl)`
+
+### `.PerishableTimeout(ms, ttl)`
 
 
 ## Authoring Cancellable Functions
@@ -57,7 +69,7 @@ const MyCancellableFactory = msg => onCancel => new Promise((resolve, reject) =>
 });
 
 (async () => {
-    const myCancellable = context.cancellable(MyCancellableFactory('success!'));
+    const myCancellable = context.Cancellable(MyCancellableFactory('success!'));
     setTimeout(() => myCancellable.cancel('cancelled!'), 500);
     console.log(await myCancellable); // => 'cancelled!'
 })();
@@ -76,7 +88,7 @@ const context = require('cancellation-context')();
 
     try {
         const ttl = 1000; // try increasing to 10000
-        console.log(await context.perishable(context.delay(1500), ttl).then(() => 'success'));
+        console.log(await context.PerishableTimeout(1500, ttl).then(() => 'success'));
     } catch (e) {
         console.error('Boom!', e);
     }
@@ -102,7 +114,7 @@ const sleep = ms => onCancel => {
 (async () => {
 
     try {
-        const promise = context.cancellable(sleep(1500));
+        const promise = context.Cancellable(sleep(1500));
         const handle = setTimeout(() => context.cancel(promise), 1000); // try increasing to 10000
         console.log('Success!', await promise);
         clearTimeout(handle);
@@ -123,9 +135,9 @@ const context = require('cancellation-context')();
     async function* loop() {
         while (true) {
             const promises = [
-                context.cancellable(context.delay(500)).then(() => (console.log('done'),'success')),
-                context.cancellable(context.delay(1000)).then(() => (console.log('done'),'success')),
-                context.cancellable(context.delay(1500)).then(() => (console.log('done'),'success'))
+                context.CancellableTimeout(500).then(() => (console.log('done'), 'success')),
+                context.CancellableTimeout(1000).then(() => (console.log('done'), 'success')),
+                context.CancellableTimeout(1500).then(() => (console.log('done'), 'success'))
             ];
             yield await Promise.all(promises);
         }

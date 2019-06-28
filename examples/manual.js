@@ -15,7 +15,7 @@ const sleep = ms => onCancel => {
 (async () => {
 
     try {
-        const promise = context.cancellable(sleep(1500));
+        const promise = context.Cancellable(sleep(1500));
         const handle = setTimeout(() => context.cancel(promise), 1000); // try increasing to 10000
         console.log('Success!', await promise);
         clearTimeout(handle);

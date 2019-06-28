@@ -10,7 +10,7 @@ const MyCancellableFactory = msg => onCancel => new Promise((resolve, reject) =>
 });
 
 (async () => {
-    const myCancellable = context.cancellable(MyCancellableFactory('success!'));
+    const myCancellable = context.Cancellable(MyCancellableFactory('success!'));
     setTimeout(() => myCancellable.cancel('cancelled!'), 500);
     console.log(await myCancellable); // => 'cancelled!'
 })();
