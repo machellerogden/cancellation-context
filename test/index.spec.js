@@ -1,6 +1,6 @@
 import test from 'ava';
 import sinon from 'sinon';
-import CancellationContext, { TimeoutError, CancellationError } from '..';
+import CancellationContext from '..';
 
 test.beforeEach(t => t.context = { sandbox: sinon.createSandbox() });
 test.afterEach(t => t.context.sandbox.restore());
