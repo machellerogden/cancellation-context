@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "ava test/*.spec.js",
-    "watch": "npm run test -- --watch"
+    "watch": "npm run test -- --watch",
+    "generate-docs": "jsdoc2md --template README.hbs --files ./index.js > README.md",
+    "clean-check": "git diff --exit-code 2>/dev/null && git diff --cached --exit-code 2>/dev/null || echo 'Please commit changes before publishing.'",
+    "prepare": "npm run test && npm run generate-docs && npm run clean-check"
   },
   "repository": {
     "type": "git",
@@ -23,7 +26,9 @@
     "cancel",
     "cancellation"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "jsdoc-to-markdown": "^5.0.0"
+  },
   "devDependencies": {
     "ava": "^1.4.1",
     "pre-commit": "^1.2.2",

@@ -33,7 +33,7 @@ class CancellationContext {
      *
      * @function Cancellable
      * @param {function} PromiseThunkFactory
-     * @returns {Promise} CancellablePromise
+     * @returns {CancellablePromise} A `CancellablePromise` is a promise with an additional `cancel` method attached.
      */
     Cancellable(fn) {
         const [ cancel, onCancel ] = this.createHooks();
@@ -49,7 +49,7 @@ class CancellationContext {
      *
      * @function Perishable
      * @param {function} PromiseThunkFactory
-     * @returns {Promise} PerishablePromise
+     * @returns {PerishablePromise} A `PerishablePromise` is a `CancellablePromise` which will be automatically cancelled after a specified amount of time.
      */
     Perishable(fn, ms) {
         const promise = this.Cancellable(fn);
@@ -59,7 +59,31 @@ class CancellationContext {
     }
 
     /**
-     * A cancellable delay implementation which resolves after given number of milliseconds.
+     * Given `promise` and `reason` calls canceller on `promise` with `reason`.
+     *
+     * @function cancel
+     * @param {Promise} promise CancellablePromise to be cancelled
+     * @param {'string' | 'Error'} reason reason for cancellation
+     * @returns {void}
+     */
+    cancel(promise, reason) {
+        const canceller = this.cancellers.get(promise);
+        if (typeof canceller === 'function') canceller(reason);
+    }
+
+    /**
+     * Calls `cancel` method with `reason` on every CancellablePromise associated with the context instance.
+     *
+     * @function cancelAll
+     * @param {'string' | 'Error'} reason reason for cancellation
+     * @returns {void}
+     */
+    cancelAll(reason) {
+        this.cancellers.forEach(c => c(reason));
+    }
+
+    /**
+     * A cancellable delay implementation which **resolves** after given number of milliseconds.
      *
      * @function delay
      * @param {number} ms Number of milliseconds to wait
@@ -83,7 +107,7 @@ class CancellationContext {
     }
 
     /**
-     * A cancellable timeout implementation which resolves after given number of milliseconds.
+     * A cancellable timeout implementation which **resolves** after given number of milliseconds.
      *
      * @function timeout
      * @param {number} ms Number of milliseconds to wait
@@ -107,7 +131,7 @@ class CancellationContext {
     }
 
     /**
-     * A CancellableFactory which resolves after given number of milliseconds.
+     * A CancellableFactory which **resolves** after given number of milliseconds.
      *
      * @function CancellableDelay
      * @param {number} ms Number of milliseconds to wait
@@ -123,7 +147,7 @@ class CancellationContext {
     }
 
     /**
-     * A CancellableFactory which rejects after given number of milliseconds.
+     * A CancellableFactory which **rejects** after given number of milliseconds.
      *
      * @function CancellableTimeout
      * @param {number} ms Number of milliseconds to wait
@@ -139,7 +163,7 @@ class CancellationContext {
     }
 
     /**
-     * A PerishableFactory which rejects after given number of milliseconds.
+     * A PerishableFactory which **rejects** after given number of milliseconds.
      *
      * @function PerishableTimeout
      * @param {number} ms Number of milliseconds to wait
@@ -168,30 +192,6 @@ class CancellationContext {
      */
     PerishableDelay(ms, ttl) {
         return this.Perishable(this.delay(ms), ttl);
-    }
-
-    /**
-     * Given `promise` and `reason` calls canceller on `promise` with `reason`.
-     *
-     * @function cancel
-     * @param {Promise} promise CancellablePromise to be cancelled
-     * @param {'string' | 'Error'} reason reason for cancellation
-     * @returns {void}
-     */
-    cancel(promise, reason) {
-        const canceller = this.cancellers.get(promise);
-        if (typeof canceller === 'function') canceller(reason);
-    }
-
-    /**
-     * Given `reason` calls canceller on all CancellablePromises that have been registered to the context.
-     *
-     * @function cancelAll
-     * @param {'string' | 'Error'} reason reason for cancellation
-     * @returns {void}
-     */
-    cancelAll(reason) {
-        this.cancellers.forEach(c => c(reason));
     }
 
     setContext(promise, cancel) {

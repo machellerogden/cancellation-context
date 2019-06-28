@@ -15,50 +15,22 @@ const CancellationContext = require('cancellation-context');
 const context = CancellationContext();
 ```
 
-The returned context has the following methods.
+Once you have a context, you can create new "cancellable-promise" instances within that context by calling `context.Cancellable` with promise-thunk factory.
 
-## Core Methods
+> **Note:** Promises are eager by design and don't naturally lend themselve to cancellation. As such, arbitrary promises are not cancellable and the onus is the author to write cancellable promise implementations. No library, including this one, will be able to solve for that unless there are some fundamental changes to the JavaScript spec.
 
-### `.Cancellable(fn)`
-
-### `.Perishable(fn, ttl)`
-
-### `.cancel(promise)`
-
-### `.cancelAll()`
-
-## Convenience Methods
-
-In addition to the core functionality above, a few functions are exposed for convenience to make working with timeouts less cumbersome.
-
-### `.delay(ms)`
-
-### `.timeout(ms)`
-
-### `.CancellableDelay(ms)`
-
-### `.CancellableTimeout(ms)`
-
-### `.PerishableDelay(ms, ttl)`
-
-### `.PerishableTimeout(ms, ttl)`
-
-
-## Authoring Cancellable Functions
-
-Promises are eager by design and don't naturally lend themselve to cancellation. As such, arbitrary promises are not cancellable and the onus is the author to write cancellable promise implementations. No library, including this one, will be able to solve for that unless there are some fundamental changes to the JavaScript spec. That said, this library attemps to make it as easy as possible to author cancellable promises by support the idea of a cancellable-promise factory.
+The `cancellation-context` library attempts to make the authoring of cancellable-promises as easy as possible by designing around the idea of promise-thunks.
 
 The recommended pattern is as follows:
 
 ```
-const MyCancellableFactory = (<< args >>) => onCancel => new Promise(<< implementation >>);
+CancellableFactory = () => onCancel => ;
 ```
 
 For example...
 
 ```
-const CancellationContext = require('cancellation-context');
-const context = CancellationContext();
+const context = require('cancellation-context')();
 
 const MyCancellableFactory = msg => onCancel => new Promise((resolve, reject) => {
     const t = setTimeout(() => resolve(msg), 1000);
@@ -75,8 +47,166 @@ const MyCancellableFactory = msg => onCancel => new Promise((resolve, reject) =>
 })();
 ```
 
-In this way, you can maintain composability while still receiving the `onCancel` hook.
+By leveraging a thunk pattern, you can maintain composability while supporting the need for an `onCancel` hook.
 
+
+## API
+
+<a name="Cancellable"></a>
+
+## Cancellable(PromiseThunkFactory) ⇒ <code>CancellablePromise</code>
+Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a CancellablePromise.
+
+**Kind**: global function  
+**Returns**: <code>CancellablePromise</code> - A `CancellablePromise` is a promise with an additional `cancel` method attached.  
+
+| Param | Type |
+| --- | --- |
+| PromiseThunkFactory | <code>function</code> | 
+
+<a name="Perishable"></a>
+
+## Perishable(PromiseThunkFactory) ⇒ <code>PerishablePromise</code>
+Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a PerishablePromise.
+
+**Kind**: global function  
+**Returns**: <code>PerishablePromise</code> - A `PerishablePromise` is a `CancellablePromise` which will be automatically cancelled after a specified amount of time.  
+
+| Param | Type |
+| --- | --- |
+| PromiseThunkFactory | <code>function</code> | 
+
+<a name="cancel"></a>
+
+## cancel(promise, reason) ⇒ <code>void</code>
+Given `promise` and `reason` calls canceller on `promise` with `reason`.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| promise | <code>Promise</code> | CancellablePromise to be cancelled |
+| reason | <code>&#x27;string&#x27;</code> \| <code>&#x27;Error&#x27;</code> | reason for cancellation |
+
+<a name="cancelAll"></a>
+
+## cancelAll(reason) ⇒ <code>void</code>
+Calls `cancel` method with `reason` on every CancellablePromise associated with the context instance.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| reason | <code>&#x27;string&#x27;</code> \| <code>&#x27;Error&#x27;</code> | reason for cancellation |
+
+<a name="delay"></a>
+
+## delay(ms) ⇒ <code>function</code>
+A cancellable delay implementation which **resolves** after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+
+**Example**  
+```js
+const cancellableDelay = context.Cancellable(context.delay(1500));
+setTimeout(() => cancellableDelay.cancel(), 1000);
+await cancellableDelay;
+```
+<a name="timeout"></a>
+
+## timeout(ms) ⇒ <code>function</code>
+A cancellable timeout implementation which **resolves** after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+
+**Example**  
+```js
+const cancellableTimeout = context.Cancellable(context.delay(1500));
+setTimeout(() => cancellableTimeout.cancel(), 1000);
+await cancellableTimeout;
+```
+<a name="CancellableDelay"></a>
+
+## CancellableDelay(ms) ⇒ <code>function</code>
+A CancellableFactory which **resolves** after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+
+**Example**  
+```js
+const cancellableDelay = context.CancellableDelay(1500));
+setTimeout(() => cancellableDelay.cancel(), 1000);
+await cancellableDelay;
+```
+<a name="CancellableTimeout"></a>
+
+## CancellableTimeout(ms) ⇒ <code>function</code>
+A CancellableFactory which **rejects** after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+
+**Example**  
+```js
+const cancellableTimeout = context.CancellableTimeout(1500));
+setTimeout(() => cancellableTimeout.cancel(), 1000);
+await cancellableTimeout;
+```
+<a name="PerishableTimeout"></a>
+
+## PerishableTimeout(ms, ttl) ⇒ <code>function</code>
+A PerishableFactory which **rejects** after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+| ttl | <code>number</code> | Number of milliseconds until cancelled |
+
+**Example**  
+```js
+const cancellableTimeout = context.PerishableTimeout(1500, 1000);
+await cancellableTimeout;
+```
+<a name="PerishableDelay"></a>
+
+## PerishableDelay(ms, ttl) ⇒ <code>function</code>
+A PerishableFactory which resolves after given number of milliseconds.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ms | <code>number</code> | Number of milliseconds to wait |
+| ttl | <code>number</code> | Number of milliseconds until cancelled |
+
+**Example**  
+```js
+const cancellableDelay = context.PerishableDelay(1500, 1000);
+await cancellableDelay;
+```
 # Examples
 
 ### Cancellable Delay
