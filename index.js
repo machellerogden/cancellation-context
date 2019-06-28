@@ -31,8 +31,8 @@ class CancellationContext {
         if (typeof canceller === 'function') canceller(error);
     }
 
-    cancelAll() {
-        this.cancellers.forEach(c => c());
+    cancelAll(error) {
+        this.cancellers.forEach(c => c(error));
     }
 
     setContext(promise, cancel) {
