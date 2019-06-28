@@ -59,7 +59,7 @@ class CancellationContext {
     Cancellable(fn) {
         const [ cancel, onCancel ] = this.createHooks();
         const promise = Promise.resolve(fn(onCancel));
-        promise.cancel = reason => this.cancel(promise, reason);
+        promise.cancel = cancel;
         this.setContext(promise, cancel);
         this.after(promise, () => this.deleteContext(promise));
         return promise;
