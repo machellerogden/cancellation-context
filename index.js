@@ -56,6 +56,13 @@ class CancellationContext {
         promise.then(fn).catch(fn);
     }
 
+    /**
+     * Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a CancellablePromise.
+     *
+     * @function Cancellable
+     * @param {function} PromiseThunkFactory
+     * @returns {Promise} CancellablePromise
+     */
     Cancellable(fn) {
         const [ cancel, onCancel ] = this.createHooks();
         const promise = Promise.resolve(fn(onCancel));
@@ -65,6 +72,13 @@ class CancellationContext {
         return promise;
     }
 
+    /**
+     * Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a PerishablePromise.
+     *
+     * @function Perishable
+     * @param {function} PromiseThunkFactory
+     * @returns {Promise} PerishablePromise
+     */
     Perishable(fn, ms) {
         const promise = this.Cancellable(fn);
         const handle = setTimeout(() => this.cancel(promise, new TimeoutError('Expired', ExpirationMessage(ms))), ms);
