@@ -24,7 +24,7 @@ The `cancellation-context` library attempts to make the authoring of cancellable
 The recommended pattern is as follows:
 
 ```
-CancellableFactory = () => onCancel => ;
+CancellableFactory = ({{ ...args }}) => onCancel => {{ promise }};
 ```
 
 For example...
