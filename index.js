@@ -28,34 +28,6 @@ class CancellationContext {
         this.cancellers = new Map();
     }
 
-    cancel(promise, reason) {
-        const canceller = this.cancellers.get(promise);
-        if (typeof canceller === 'function') canceller(reason);
-    }
-
-    cancelAll(reason) {
-        this.cancellers.forEach(c => c(reason));
-    }
-
-    setContext(promise, cancel) {
-        this.cancellers.set(promise, cancel);
-    }
-
-    deleteContext(promise) {
-        this.cancellers.delete(promise);
-    }
-
-    createHooks() {
-        let cancel;
-        const cancelled = new Promise(resolve => cancel = reason => resolve(reason || new CancellationError('Cancelled')));
-        const onCancel = fn => cancelled.then(fn);
-        return [ cancel, onCancel ];
-    }
-
-    after(promise, fn) {
-        promise.then(fn).catch(fn);
-    }
-
     /**
      * Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a CancellablePromise.
      *
@@ -135,7 +107,7 @@ class CancellationContext {
     }
 
     /**
-     * A Cancellable factory which resolves after given number of milliseconds.
+     * A CancellableFactory which resolves after given number of milliseconds.
      *
      * @function CancellableDelay
      * @param {number} ms Number of milliseconds to wait
@@ -151,7 +123,7 @@ class CancellationContext {
     }
 
     /**
-     * A Cancellable factory which rejects after given number of milliseconds.
+     * A CancellableFactory which rejects after given number of milliseconds.
      *
      * @function CancellableTimeout
      * @param {number} ms Number of milliseconds to wait
@@ -167,7 +139,7 @@ class CancellationContext {
     }
 
     /**
-     * A Perishable factory which rejects after given number of milliseconds.
+     * A PerishableFactory which rejects after given number of milliseconds.
      *
      * @function PerishableTimeout
      * @param {number} ms Number of milliseconds to wait
@@ -183,7 +155,7 @@ class CancellationContext {
     }
 
     /**
-     * A Perishable factory which resolves after given number of milliseconds.
+     * A PerishableFactory which resolves after given number of milliseconds.
      *
      * @function PerishableDelay
      * @param {number} ms Number of milliseconds to wait
@@ -198,6 +170,49 @@ class CancellationContext {
         return this.Perishable(this.delay(ms), ttl);
     }
 
+    /**
+     * Given `promise` and `reason` calls canceller on `promise` with `reason`.
+     *
+     * @function cancel
+     * @param {Promise} promise CancellablePromise to be cancelled
+     * @param {'string' | 'Error'} reason reason for cancellation
+     * @returns {void}
+     */
+    cancel(promise, reason) {
+        const canceller = this.cancellers.get(promise);
+        if (typeof canceller === 'function') canceller(reason);
+    }
+
+    /**
+     * Given `reason` calls canceller on all CancellablePromises that have been registered to the context.
+     *
+     * @function cancelAll
+     * @param {'string' | 'Error'} reason reason for cancellation
+     * @returns {void}
+     */
+    cancelAll(reason) {
+        this.cancellers.forEach(c => c(reason));
+    }
+
+    setContext(promise, cancel) {
+        this.cancellers.set(promise, cancel);
+    }
+
+    deleteContext(promise) {
+        this.cancellers.delete(promise);
+    }
+
+    createHooks() {
+        let cancel;
+        const cancelled = new Promise(resolve => cancel = reason => resolve(reason || new CancellationError('Cancelled')));
+        const onCancel = fn => cancelled.then(fn);
+        return [ cancel, onCancel ];
+    }
+
+    after(promise, fn) {
+        promise.then(fn).catch(fn);
+    }
+
 }
 
 function CancellationContextFactory(...args) {
@@ -205,3 +220,5 @@ function CancellationContextFactory(...args) {
 }
 
 module.exports = CancellationContextFactory;
+module.exports.CancellationError = CancellationError;
+module.exports.TimeoutError = TimeoutError;
