@@ -52,59 +52,109 @@ By leveraging a thunk pattern, you can maintain composability while supporting t
 
 ## API
 
-<a name="Cancellable"></a>
+<a name="module_cancellation-context"></a>
 
-## Cancellable(PromiseThunkFactory) ⇒ <code>CancellablePromise</code>
+## cancellation-context
+
+* [cancellation-context](#module_cancellation-context)
+    * [~CancellationContext](#module_cancellation-context..CancellationContext)
+    * [~CancellationError](#module_cancellation-context..CancellationError)
+        * [new CancellationError()](#new_module_cancellation-context..CancellationError_new)
+    * [~TimeoutError](#module_cancellation-context..TimeoutError)
+        * [new TimeoutError()](#new_module_cancellation-context..TimeoutError_new)
+    * [~CancellationContextFactory()](#module_cancellation-context..CancellationContextFactory) ⇒ <code>CancellationContext</code>
+    * [~Cancellable(PromiseThunkFactory)](#module_cancellation-context..Cancellable) ⇒ <code>CancellablePromise</code>
+    * [~Perishable(PromiseThunkFactory)](#module_cancellation-context..Perishable) ⇒ <code>PerishablePromise</code>
+    * [~cancel(promise, reason)](#module_cancellation-context..cancel) ⇒ <code>void</code>
+    * [~cancelAll(reason)](#module_cancellation-context..cancelAll) ⇒ <code>void</code>
+    * [~delay(ms)](#module_cancellation-context..delay) ⇒ <code>function</code>
+    * [~timeout(ms)](#module_cancellation-context..timeout) ⇒ <code>function</code>
+    * [~CancellableDelay(ms)](#module_cancellation-context..CancellableDelay) ⇒ <code>function</code>
+    * [~CancellableTimeout(ms)](#module_cancellation-context..CancellableTimeout) ⇒ <code>function</code>
+    * [~PerishableTimeout(ms, ttl)](#module_cancellation-context..PerishableTimeout) ⇒ <code>function</code>
+    * [~PerishableDelay(ms, ttl)](#module_cancellation-context..PerishableDelay) ⇒ <code>function</code>
+
+<a name="module_cancellation-context..CancellationContext"></a>
+
+### cancellation-context~CancellationContext
+**Kind**: inner class of [<code>cancellation-context</code>](#module_cancellation-context)  
+<a name="module_cancellation-context..CancellationError"></a>
+
+### cancellation-context~CancellationError
+**Kind**: inner class of [<code>cancellation-context</code>](#module_cancellation-context)  
+**Implements**: <code>Error</code>  
+<a name="new_module_cancellation-context..CancellationError_new"></a>
+
+#### new CancellationError()
+An error class used for indicating cancellation events.
+
+<a name="module_cancellation-context..TimeoutError"></a>
+
+### cancellation-context~TimeoutError
+**Kind**: inner class of [<code>cancellation-context</code>](#module_cancellation-context)  
+**Implements**: <code>Error</code>  
+<a name="new_module_cancellation-context..TimeoutError_new"></a>
+
+#### new TimeoutError()
+An error class used for indicating timeout events.
+
+<a name="module_cancellation-context..CancellationContextFactory"></a>
+
+### cancellation-context~CancellationContextFactory() ⇒ <code>CancellationContext</code>
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
+<a name="module_cancellation-context..Cancellable"></a>
+
+### cancellation-context~Cancellable(PromiseThunkFactory) ⇒ <code>CancellablePromise</code>
 Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a CancellablePromise.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>CancellablePromise</code> - A `CancellablePromise` is a promise with an additional `cancel` method attached.  
 
 | Param | Type |
 | --- | --- |
 | PromiseThunkFactory | <code>function</code> | 
 
-<a name="Perishable"></a>
+<a name="module_cancellation-context..Perishable"></a>
 
-## Perishable(PromiseThunkFactory) ⇒ <code>PerishablePromise</code>
+### cancellation-context~Perishable(PromiseThunkFactory) ⇒ <code>PerishablePromise</code>
 Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a PerishablePromise.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>PerishablePromise</code> - A `PerishablePromise` is a `CancellablePromise` which will be automatically cancelled after a specified amount of time.  
 
 | Param | Type |
 | --- | --- |
 | PromiseThunkFactory | <code>function</code> | 
 
-<a name="cancel"></a>
+<a name="module_cancellation-context..cancel"></a>
 
-## cancel(promise, reason) ⇒ <code>void</code>
+### cancellation-context~cancel(promise, reason) ⇒ <code>void</code>
 Given `promise` and `reason` calls canceller on `promise` with `reason`.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | promise | <code>Promise</code> | CancellablePromise to be cancelled |
 | reason | <code>&#x27;string&#x27;</code> \| <code>&#x27;Error&#x27;</code> | reason for cancellation |
 
-<a name="cancelAll"></a>
+<a name="module_cancellation-context..cancelAll"></a>
 
-## cancelAll(reason) ⇒ <code>void</code>
+### cancellation-context~cancelAll(reason) ⇒ <code>void</code>
 Calls `cancel` method with `reason` on every CancellablePromise associated with the context instance.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | reason | <code>&#x27;string&#x27;</code> \| <code>&#x27;Error&#x27;</code> | reason for cancellation |
 
-<a name="delay"></a>
+<a name="module_cancellation-context..delay"></a>
 
-## delay(ms) ⇒ <code>function</code>
+### cancellation-context~delay(ms) ⇒ <code>function</code>
 A cancellable delay implementation which **resolves** after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |
@@ -117,12 +167,12 @@ const cancellableDelay = context.Cancellable(context.delay(1500));
 setTimeout(() => cancellableDelay.cancel(), 1000);
 await cancellableDelay;
 ```
-<a name="timeout"></a>
+<a name="module_cancellation-context..timeout"></a>
 
-## timeout(ms) ⇒ <code>function</code>
+### cancellation-context~timeout(ms) ⇒ <code>function</code>
 A cancellable timeout implementation which **resolves** after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |
@@ -135,12 +185,12 @@ const cancellableTimeout = context.Cancellable(context.delay(1500));
 setTimeout(() => cancellableTimeout.cancel(), 1000);
 await cancellableTimeout;
 ```
-<a name="CancellableDelay"></a>
+<a name="module_cancellation-context..CancellableDelay"></a>
 
-## CancellableDelay(ms) ⇒ <code>function</code>
+### cancellation-context~CancellableDelay(ms) ⇒ <code>function</code>
 A CancellableFactory which **resolves** after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |
@@ -153,12 +203,12 @@ const cancellableDelay = context.CancellableDelay(1500));
 setTimeout(() => cancellableDelay.cancel(), 1000);
 await cancellableDelay;
 ```
-<a name="CancellableTimeout"></a>
+<a name="module_cancellation-context..CancellableTimeout"></a>
 
-## CancellableTimeout(ms) ⇒ <code>function</code>
+### cancellation-context~CancellableTimeout(ms) ⇒ <code>function</code>
 A CancellableFactory which **rejects** after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |
@@ -171,12 +221,12 @@ const cancellableTimeout = context.CancellableTimeout(1500));
 setTimeout(() => cancellableTimeout.cancel(), 1000);
 await cancellableTimeout;
 ```
-<a name="PerishableTimeout"></a>
+<a name="module_cancellation-context..PerishableTimeout"></a>
 
-## PerishableTimeout(ms, ttl) ⇒ <code>function</code>
+### cancellation-context~PerishableTimeout(ms, ttl) ⇒ <code>function</code>
 A PerishableFactory which **rejects** after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |
@@ -189,12 +239,12 @@ A PerishableFactory which **rejects** after given number of milliseconds.
 const cancellableTimeout = context.PerishableTimeout(1500, 1000);
 await cancellableTimeout;
 ```
-<a name="PerishableDelay"></a>
+<a name="module_cancellation-context..PerishableDelay"></a>
 
-## PerishableDelay(ms, ttl) ⇒ <code>function</code>
+### cancellation-context~PerishableDelay(ms, ttl) ⇒ <code>function</code>
 A PerishableFactory which resolves after given number of milliseconds.
 
-**Kind**: global function  
+**Kind**: inner method of [<code>cancellation-context</code>](#module_cancellation-context)  
 **Returns**: <code>function</code> - Returns function which accepts `onCancel` hook.  
 
 | Param | Type | Description |

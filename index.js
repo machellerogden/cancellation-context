@@ -1,27 +1,20 @@
 'use strict';
+/**
+ * @module cancellation-context
+ */
 
 const ExpirationMessage = ms => `${ms}ms TTL surpassed`;
 
-class CancellationError extends Error {
-    constructor(message, cause, ...args) {
-        super(message, cause, ...args);
-        Error.captureStackTrace(this, CancellationError);
-        this.name = 'CancellationError';
-        this.code = 'CANCELLED';
-        if (cause) this.cause = cause;
-    }
+/**
+ * @returns {CancellationContext}
+ */
+function CancellationContextFactory(...args) {
+    return new CancellationContext(...args);
 }
 
-class TimeoutError extends Error {
-    constructor(message, cause, ...args) {
-        super(message, cause, ...args);
-        Error.captureStackTrace(this, TimeoutError);
-        this.name = 'TimeoutError';
-        this.code = 'EXPIRED';
-        if (cause) this.cause = cause;
-    }
-}
-
+/**
+ * @class CancellationContext
+ */
 class CancellationContext {
 
     constructor() {
@@ -31,7 +24,7 @@ class CancellationContext {
     /**
      * Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a CancellablePromise.
      *
-     * @function Cancellable
+     * @method Cancellable
      * @param {function} PromiseThunkFactory
      * @returns {CancellablePromise} A `CancellablePromise` is a promise with an additional `cancel` method attached.
      */
@@ -47,7 +40,7 @@ class CancellationContext {
     /**
      * Given a PromiseThunkFactory which accepts on `onCancel` hook, returns a PerishablePromise.
      *
-     * @function Perishable
+     * @method Perishable
      * @param {function} PromiseThunkFactory
      * @returns {PerishablePromise} A `PerishablePromise` is a `CancellablePromise` which will be automatically cancelled after a specified amount of time.
      */
@@ -61,7 +54,7 @@ class CancellationContext {
     /**
      * Given `promise` and `reason` calls canceller on `promise` with `reason`.
      *
-     * @function cancel
+     * @method cancel
      * @param {Promise} promise CancellablePromise to be cancelled
      * @param {'string' | 'Error'} reason reason for cancellation
      * @returns {void}
@@ -74,7 +67,7 @@ class CancellationContext {
     /**
      * Calls `cancel` method with `reason` on every CancellablePromise associated with the context instance.
      *
-     * @function cancelAll
+     * @method cancelAll
      * @param {'string' | 'Error'} reason reason for cancellation
      * @returns {void}
      */
@@ -85,7 +78,7 @@ class CancellationContext {
     /**
      * A cancellable delay implementation which **resolves** after given number of milliseconds.
      *
-     * @function delay
+     * @method delay
      * @param {number} ms Number of milliseconds to wait
      * @returns {function} Returns function which accepts `onCancel` hook.
      * @example
@@ -109,7 +102,7 @@ class CancellationContext {
     /**
      * A cancellable timeout implementation which **resolves** after given number of milliseconds.
      *
-     * @function timeout
+     * @method timeout
      * @param {number} ms Number of milliseconds to wait
      * @returns {function} Returns function which accepts `onCancel` hook.
      * @example
@@ -133,7 +126,7 @@ class CancellationContext {
     /**
      * A CancellableFactory which **resolves** after given number of milliseconds.
      *
-     * @function CancellableDelay
+     * @method CancellableDelay
      * @param {number} ms Number of milliseconds to wait
      * @returns {function} Returns function which accepts `onCancel` hook.
      * @example
@@ -149,7 +142,7 @@ class CancellationContext {
     /**
      * A CancellableFactory which **rejects** after given number of milliseconds.
      *
-     * @function CancellableTimeout
+     * @method CancellableTimeout
      * @param {number} ms Number of milliseconds to wait
      * @returns {function} Returns function which accepts `onCancel` hook.
      * @example
@@ -165,7 +158,7 @@ class CancellationContext {
     /**
      * A PerishableFactory which **rejects** after given number of milliseconds.
      *
-     * @function PerishableTimeout
+     * @method PerishableTimeout
      * @param {number} ms Number of milliseconds to wait
      * @param {number} ttl Number of milliseconds until cancelled
      * @returns {function} Returns function which accepts `onCancel` hook.
@@ -181,7 +174,7 @@ class CancellationContext {
     /**
      * A PerishableFactory which resolves after given number of milliseconds.
      *
-     * @function PerishableDelay
+     * @method PerishableDelay
      * @param {number} ms Number of milliseconds to wait
      * @param {number} ttl Number of milliseconds until cancelled
      * @returns {function} Returns function which accepts `onCancel` hook.
@@ -215,10 +208,40 @@ class CancellationContext {
 
 }
 
-function CancellationContextFactory(...args) {
-    return new CancellationContext(...args);
+class CancellationError extends Error {
+    constructor(message, cause, ...args) {
+        super(message, cause, ...args);
+        Error.captureStackTrace(this, CancellationError);
+        this.name = 'CancellationError';
+        this.code = 'CANCELLED';
+        if (cause) this.cause = cause;
+    }
+}
+
+class TimeoutError extends Error {
+    constructor(message, cause, ...args) {
+        super(message, cause, ...args);
+        Error.captureStackTrace(this, TimeoutError);
+        this.name = 'TimeoutError';
+        this.code = 'EXPIRED';
+        if (cause) this.cause = cause;
+    }
 }
 
 module.exports = CancellationContextFactory;
+
+/**
+ * An error class used for indicating cancellation events.
+ *
+ * @class CancellationError
+ * @implements Error
+ */
 module.exports.CancellationError = CancellationError;
+
+/**
+ * An error class used for indicating timeout events.
+ *
+ * @class TimeoutError
+ * @implements Error
+ */
 module.exports.TimeoutError = TimeoutError;
