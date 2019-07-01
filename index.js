@@ -5,9 +5,6 @@
 
 const ExpirationMessage = ms => `${ms}ms TTL surpassed`;
 
-/**
- * @returns {CancellationContext}
- */
 function CancellationContextFactory(...args) {
     return new CancellationContext(...args);
 }

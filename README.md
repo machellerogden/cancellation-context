@@ -64,7 +64,6 @@ By leveraging a thunk pattern, you can maintain composability while supporting t
             * [new CancellationError()](#new_module_cancellation-context--module.exports..CancellationError_new)
         * [~TimeoutError](#module_cancellation-context--module.exports..TimeoutError)
             * [new TimeoutError()](#new_module_cancellation-context--module.exports..TimeoutError_new)
-        * [~CancellationContextFactory()](#module_cancellation-context--module.exports..CancellationContextFactory) ⇒ <code>CancellationContext</code>
         * [~Cancellable(PromiseThunkFactory)](#module_cancellation-context--module.exports..Cancellable) ⇒ <code>CancellablePromise</code>
         * [~Perishable(PromiseThunkFactory)](#module_cancellation-context--module.exports..Perishable) ⇒ <code>PerishablePromise</code>
         * [~cancel(promise, reason)](#module_cancellation-context--module.exports..cancel) ⇒ <code>void</code>
@@ -112,10 +111,6 @@ An error class used for indicating cancellation events.
 ##### new TimeoutError()
 An error class used for indicating timeout events.
 
-<a name="module_cancellation-context--module.exports..CancellationContextFactory"></a>
-
-#### module.exports~CancellationContextFactory() ⇒ <code>CancellationContext</code>
-**Kind**: inner method of [<code>module.exports</code>](#exp_module_cancellation-context--module.exports)  
 <a name="module_cancellation-context--module.exports..Cancellable"></a>
 
 #### module.exports~Cancellable(PromiseThunkFactory) ⇒ <code>CancellablePromise</code>
