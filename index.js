@@ -13,7 +13,10 @@ function CancellationContextFactory(...args) {
 }
 
 /**
+ * `CancellationContext` is a private class. Use exported `CancellationContextFactory` function for instantiation.
+ *
  * @class CancellationContext
+ * @see CancellationContextFactory
  */
 class CancellationContext {
 
@@ -228,6 +231,11 @@ class TimeoutError extends Error {
     }
 }
 
+/**
+ * Factory function for creating CancellationContext instances.
+ *
+ * @returns {CancellationContext}
+ */
 module.exports = CancellationContextFactory;
 
 /**
